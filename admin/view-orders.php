@@ -45,6 +45,13 @@ $sql = "
         o.product_id, 
         o.quantity, 
         o.order_date, 
+        o.status, 
+        o.payment_method, 
+        o.address, 
+        o.city, 
+        o.state, 
+        o.zip_code, 
+        o.contact_number, 
         u.username AS user_name, 
         p.product_name, 
         p.price
@@ -89,12 +96,10 @@ $conn->close();
         .table-wrapper {
             margin-top: 30px;
             overflow-x: auto;
-        }
-
-        .table {
-            border-collapse: collapse;
-            width: 100%;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         .table thead {
@@ -139,6 +144,22 @@ $conn->close();
         .btn-update:hover {
             background-color: #218838;
         }
+
+        @media (max-width: 768px) {
+            .table-wrapper {
+                padding: 10px;
+            }
+
+            .table th, .table td {
+                font-size: 0.875rem;
+                padding: 8px;
+            }
+
+            .btn-delete, .btn-update {
+                padding: 3px 5px;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -158,11 +179,19 @@ $conn->close();
                                 <th>User ID</th>
                                 <th>Order ID</th>
                                 <th>Product ID</th>
-                                <th>Quantity</th>
-                                <th>Order Date</th>
-                                <th>User Name</th>
                                 <th>Product Name</th>
                                 <th>Price</th>
+                                <th>Qty</th>
+                                <th>Total Cost</th>
+                                <th>Order Date</th>
+                                <th>User Name</th>
+                                <th>Payment Method</th>
+                                <th>Address</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Zip Code</th>
+                                <th>Contact Number</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -172,15 +201,33 @@ $conn->close();
                                     <td><?php echo htmlspecialchars($row['user_id']); ?></td>
                                     <td><?php echo htmlspecialchars($row['order_id']); ?></td>
                                     <td><?php echo htmlspecialchars($row['product_id']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['quantity']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['order_date']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['user_name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['product_name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['price']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['quantity']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['price'] * $row['quantity']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['order_date']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['user_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['payment_method']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['address']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['city']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['state']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['zip_code']); ?></td>
+                                    <td><?php echo htmlspecialchars($row['contact_number']); ?></td>
                                     <td>
-                                        
+                                        <form action="view-orders.php" method="post" style="display: inline-block;">
+                                            <input type="hidden" name="order_id" value="<?php echo htmlspecialchars($row['order_id']); ?>">
+                                            <select name="status" class="form-control" style="display: inline-block; width: auto;">
+                                                <option value="Pending" <?php if ($row['status'] == 'Pending') echo 'selected'; ?>>Pending</option>
+                                                <option value="Shipped" <?php if ($row['status'] == 'Shipped') echo 'selected'; ?>>Shipped</option>
+                                                <option value="Delivered" <?php if ($row['status'] == 'Delivered') echo 'selected'; ?>>Delivered</option>
+                                                <option value="Cancelled" <?php if ($row['status'] == 'Cancelled') echo 'selected'; ?>>Cancelled</option>
+                                            </select>
+                                            <button type="submit" name="update_status" class="btn-update"><i class="fas fa-check"></i> Update</button>
+                                        </form>
+                                    </td>
+                                    <td>
                                         <a href="view-orders.php?delete_id=<?php echo htmlspecialchars($row['order_id']); ?>" class="btn-delete" onclick="return confirm('Are you sure you want to delete this order?');">
-                                            <i class="fas fa-trash-alt"></i> Delete
+                                            <i class="fas fa-trash-alt"></i> 
                                         </a>
                                     </td>
                                 </tr>

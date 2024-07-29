@@ -21,15 +21,33 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Fetch user information from session
 $user_id = $_SESSION['user_id'];
+$username = $_SESSION['username'];
 
-// Fetch orders for the logged-in user
-$sql = "SELECT id, product_name, price, quantity, order_date, user_name FROM orders WHERE user_id = ? ORDER BY order_date DESC";
+// Fetch orders where the product name matches and the user name in the products table matches the current user
+$sql = "SELECT o.id, o.product_name, p.price, o.quantity, o.order_date, p.user_name, o.status
+        FROM orders o 
+        INNER JOIN products p ON o.product_name = p.product_name 
+        WHERE p.user_name = ?
+        ORDER BY o.order_date DESC";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("s", $username);
 $stmt->execute();
 $result = $stmt->get_result();
 $orders = $result->fetch_all(MYSQLI_ASSOC);
+
+// Calculate total income where status is 'delivered'
+$income_sql = "SELECT SUM(p.price * o.quantity) AS total_sales 
+               FROM orders o 
+               INNER JOIN products p ON o.product_name = p.product_name 
+               WHERE p.user_name = ? AND o.status = 'delivered'";
+$income_stmt = $conn->prepare($income_sql);
+$income_stmt->bind_param("s", $username);
+$income_stmt->execute();
+$income_result = $income_stmt->get_result();
+$total_sales_row = $income_result->fetch_assoc();
+$total_sales = $total_sales_row['total_sales'] ?? 0; // Set to 0 if null
 
 // Handle delete request
 if (isset($_GET['delete'])) {
@@ -51,30 +69,21 @@ if (isset($_GET['delete'])) {
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>My Orders | Comrade</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="" name="keywords">
-    <meta content="" name="description">
-
+    <title>My Income | Comrade</title>
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
-
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Inter:wght@700;800&display=swap" rel="stylesheet">
-
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
-
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
-
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
 </head>
-
 <body>
     <div class="container-xxl bg-white p-0">
         <!-- Navbar Start -->
@@ -92,7 +101,6 @@ if (isset($_GET['delete'])) {
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto">
                         <a href="index.php" class="nav-item nav-link">Home</a>
-                        <a href="addproduct.php" class="nav-item nav-link">Add Product</a>
                         <a href="dashboard.php" class="nav-item nav-link">Dashboard</a>
                     </div>
                     <a href="logout.php" class="btn btn-primary px-3 d-none d-lg-flex">Log Out</a>
@@ -100,10 +108,9 @@ if (isset($_GET['delete'])) {
             </nav>
         </div>
         <!-- Navbar End -->
-
         <!-- My Orders Start -->
         <div class="container py-5">
-            <h2 class="mb-4">My Income </h2>
+            <h2 class="mb-4">My Income</h2>
 
             <?php if (!empty($orders)): ?>
                 <table class="table table-striped">
@@ -116,6 +123,8 @@ if (isset($_GET['delete'])) {
                             <th>Order Date</th>
                             <th>Ordered By</th>
                             <th>Total Income</th>
+                            <th>Username</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -129,6 +138,8 @@ if (isset($_GET['delete'])) {
                                 <td><?php echo htmlspecialchars($order['order_date']); ?></td>
                                 <td><?php echo htmlspecialchars($order['user_name']); ?></td>
                                 <td>Ksh <?php echo htmlspecialchars($order['price'] * $order['quantity']); ?></td>
+                                <td><?php echo htmlspecialchars($order['user_name']); ?></td>
+                                <td><?php echo htmlspecialchars($order['status']); ?></td>
                                 <td>
                                     <a href="?delete=<?php echo htmlspecialchars($order['id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this order?')">Delete</a>
                                 </td>
@@ -136,6 +147,7 @@ if (isset($_GET['delete'])) {
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                <p><strong>Total Sales (Delivered Orders): Ksh <?php echo number_format($total_sales, 2); ?></strong></p>
             <?php else: ?>
                 <p>You have no orders yet.</p>
             <?php endif; ?>
@@ -143,7 +155,7 @@ if (isset($_GET['delete'])) {
         <!-- My Orders End -->
 
         <!-- Footer Start -->
-        <!-- (Include your footer code here) -->
+        <!-- Your footer content -->
         <!-- Footer End -->
 
         <!-- Back to Top -->

@@ -40,7 +40,7 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Fetch products with user details and calculate total income
+// Fetch products with user details
 $sql = "
     SELECT 
         p.id,
@@ -49,22 +49,16 @@ $sql = "
         p.price,
         p.upload_date,
         u.username AS user_name,
-        p.images,
+        p.image_path AS images, 
         p.description,
         p.uploaded_date,
-        CONCAT('../sell/', p.image_path) AS image_path,
-        SUM(o.quantity) AS total_quantity,
-        (p.price * SUM(o.quantity)) AS total_income
+        CONCAT('../sell/', p.image_path) AS image_path
     FROM 
         products p
     LEFT JOIN 
         users u ON p.user_id = u.id
-    LEFT JOIN 
-        orders o ON p.id = o.product_id
     WHERE 
         p.user_id = ?
-    GROUP BY 
-        p.id
 ";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
@@ -76,7 +70,7 @@ $result = $stmt->get_result();
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Total Income - Comrade</title>
+    <title>My products- Comrade</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <link href="img/favicon.ico" rel="icon">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Inter:wght@700;800&display=swap" rel="stylesheet">
@@ -135,15 +129,14 @@ $result = $stmt->get_result();
                                 <th>Description</th>
                                 <th>Uploaded Date</th>
                                 <th>Price</th>
-                                <th>Total Quantity</th>
-                                <th>Total Income</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
+                        <?php $count=0;  ?>
                         <tbody>
-                            <?php while ($row = $result->fetch_assoc()): ?>
+                            <?php while ($row = $result->fetch_assoc()): $count++ ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($row['id']); ?></td>
+                                    <td><?php echo $count; ?></td>
                                     <td><?php echo htmlspecialchars($row['user_id']); ?></td>
                                     <td><?php echo htmlspecialchars($row['product_name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['upload_date']); ?></td>
@@ -152,8 +145,6 @@ $result = $stmt->get_result();
                                     <td><?php echo htmlspecialchars($row['description']); ?></td>
                                     <td><?php echo htmlspecialchars($row['uploaded_date']); ?></td>
                                     <td><?php echo htmlspecialchars($row['price']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['total_quantity']); ?></td>
-                                    <td>Ksh <?php echo htmlspecialchars($row['total_income']); ?></td>
                                     <td>
                                         <a href="?delete=<?php echo htmlspecialchars($row['id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this product?')">Delete</a>
                                     </td>

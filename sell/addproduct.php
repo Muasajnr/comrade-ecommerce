@@ -5,13 +5,18 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'seller') {
     exit();
 }
 
+// Fetch user information from session
+$user_id = $_SESSION['user_id'];
+$username = $_SESSION['username'];
+$role = $_SESSION['role'];
+
 $servername = "localhost";
-$username = "root";
+$dbusername = "root"; // Changed variable name to avoid conflict with $username from session
 $password = "";
 $dbname = "comrade";
 
 // Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $dbusername, $password, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
@@ -23,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $price = $_POST['price'];
     $description = $_POST['description'];
     $user_id = $_SESSION['user_id'];
-    $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Default User';
+    $username = $_SESSION['username']; // Ensure this is the session variable
     $uploaded_date = date("Y-m-d H:i:s");
 
     // Handle file upload
@@ -50,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Insert product into the database
     $sql = "INSERT INTO products (user_id, user_name, product_name, price, description, uploaded_date, image_path) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("issdsss", $user_id, $user_name, $product_name, $price, $description, $uploaded_date, $image_paths_str);
+    $stmt->bind_param("issdsss", $user_id, $username, $product_name, $price, $description, $uploaded_date, $image_paths_str);
 
     if ($stmt->execute()) {
         echo "New product uploaded successfully";

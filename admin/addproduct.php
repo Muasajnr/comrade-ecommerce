@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $price = $_POST['price'];
     $description = $_POST['description'];
     $user_id = $_SESSION['user_id'];
-    $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Default User';
+    $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Admin';
     $uploaded_date = date("Y-m-d H:i:s");
 
     // Handle file upload

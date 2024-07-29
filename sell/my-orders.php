@@ -24,13 +24,13 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Fetch orders for the logged-in user
-$sql = "SELECT id, product_name, price, quantity, order_date, user_name FROM orders WHERE user_id = ? ORDER BY order_date DESC";
+$sql = "SELECT id, product_name, price, quantity, order_date, user_name, status FROM orders WHERE user_id = ? ORDER BY order_date DESC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $orders = $result->fetch_all(MYSQLI_ASSOC);
-
+$stmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -78,7 +78,6 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <div class="navbar-nav ms-auto">
                         <a href="index.php" class="nav-item nav-link">Home</a>
-                        <a href="addproduct.php" class="nav-item nav-link">Add Product</a>
                         <a href="dashboard.php" class="nav-item nav-link">Dashboard</a>
                     </div>
                     <a href="logout.php" class="btn btn-primary px-3 d-none d-lg-flex">Log Out</a>
@@ -99,8 +98,11 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
                             <th>Product Name</th>
                             <th>Price</th>
                             <th>Quantity</th>
+                            <th>Total Cost</th> <!-- Added Total Cost Column -->
                             <th>Order Date</th>
                             <th>Ordered By</th>
+                            <th>Status</th>
+                            <th>Actions</th> <!-- Added Actions Column -->
                         </tr>
                     </thead>
                     <tbody>
@@ -110,8 +112,14 @@ $orders = $result->fetch_all(MYSQLI_ASSOC);
                                 <td><?php echo htmlspecialchars($order['product_name']); ?></td>
                                 <td>$<?php echo htmlspecialchars($order['price']); ?></td>
                                 <td><?php echo htmlspecialchars($order['quantity']); ?></td>
+                                <td>$<?php echo htmlspecialchars(number_format($order['price'] * $order['quantity'], 2)); ?></td> <!-- Display Total Cost -->
                                 <td><?php echo htmlspecialchars($order['order_date']); ?></td>
                                 <td><?php echo htmlspecialchars($order['user_name']); ?></td>
+                                <td><?php echo htmlspecialchars($order['status']); ?></td>
+                                <td>
+                                    <a href="edit_order.php?id=<?php echo htmlspecialchars($order['id']); ?>" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="delete_order.php?id=<?php echo htmlspecialchars($order['id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this order?')">Delete</a>
+                                </td> <!-- Added Action Buttons -->
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

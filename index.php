@@ -38,9 +38,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Redirect based on user role
             if ($row['role'] === 'buyer') {
-                header("Location: buy/dashboard.php");
+                header("Location: buy/index.php");
             } else if ($row['role'] === 'seller') {
-                header("Location: sell/dashboard.php");
+                header("Location: sell/index.php");
             } else {
                 $error_message = "Invalid role assigned to the user.";
             }

@@ -26,13 +26,13 @@ $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'];
 
 // Fetch orders where the product name matches and the user name in the products table matches the current user
-$sql = "SELECT o.id, o.product_name, p.price, o.quantity, o.order_date, p.user_name, o.status
+$sql = "SELECT o.id, o.product_name, p.price, o.quantity, o.order_date, p.user_name AS product_user_name, o.user_name, o.status 
         FROM orders o 
         INNER JOIN products p ON o.product_name = p.product_name 
-        WHERE p.user_name = ?
+        WHERE p.user_name = ? AND o.user_id <> ?
         ORDER BY o.order_date DESC";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $username);
+$stmt->bind_param("ss", $username, $username);
 $stmt->execute();
 $result = $stmt->get_result();
 $orders = $result->fetch_all(MYSQLI_ASSOC);
@@ -138,8 +138,8 @@ if (isset($_GET['delete'])) {
                                 <td><?php echo htmlspecialchars($order['order_date']); ?></td>
                                 <td><?php echo htmlspecialchars($order['user_name']); ?></td>
                                 <td>Ksh <?php echo htmlspecialchars($order['price'] * $order['quantity']); ?></td>
-                                <td><?php echo htmlspecialchars($order['user_name']); ?></td>
-                                <td><?php echo htmlspecialchars($order['status']); ?></td>
+                                <td><?php echo htmlspecialchars($order['product_user_name'] ?? ''); ?></td>
+                                <td><?php echo htmlspecialchars($order['status'] ?? ''); ?></td>
                                 <td>
                                     <a href="?delete=<?php echo htmlspecialchars($order['id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this order?')">Delete</a>
                                 </td>

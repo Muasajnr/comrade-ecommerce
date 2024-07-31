@@ -37,7 +37,7 @@ $sql = "
     
         FROM 
         products 
-    CONCAT('../sell/', p.image_path) AS image_path
+    
 ";
 $stmt = $conn->prepare($sql);
 

@@ -171,9 +171,19 @@ if ($result->num_rows > 0) {
         $images = explode(',', $row['image_path']);
         $first_image = $images[0];
 
-        // Debugging: output image path
-        $image_path = '../sell/' . htmlspecialchars($first_image);
-        //echo '<p>Image Path: ' . $image_path . '</p>'; // Debugging
+        // Check if the image exists in the '../admin/uploads/' directory
+        $image_path_admin = '../admin/' . htmlspecialchars($first_image);
+        $image_path_sell = '../sell/' . htmlspecialchars($first_image);
+
+        // Determine the correct image path
+        if (file_exists($image_path_admin)) {
+            $image_path = $image_path_admin;
+        } elseif (file_exists($image_path_sell)) {
+            $image_path = $image_path_sell;
+        } else {
+            // Fallback if the image doesn't exist in either directory
+            $image_path = 'default_image.jpg'; // Use a default image or handle as necessary
+        }
 
         echo '<div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">';
         echo '<div class="property-item rounded overflow-hidden">';
@@ -188,7 +198,6 @@ if ($result->num_rows > 0) {
 } else {
     echo '<p>No products found.</p>';
 }
-
 ?>
                             <div class="col-12 text-center wow fadeInUp" data-wow-delay="0.1s">
                                 <a class="btn btn-primary py-3 px-5" href="#">Browse More Products</a>
